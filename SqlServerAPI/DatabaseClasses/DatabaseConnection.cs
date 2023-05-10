@@ -10,7 +10,7 @@ namespace SqlServerAPI.DatabaseClasses
 
         public static string ConnectionString
         {
-            get { return "Data Source=localhost;Initial Catalog=AdventureWorks2019;User ID=scot;Password=AirWatch1"; }
+            get { return "Data Source=localhost;Initial Catalog=AdventureWorks2019;User ID=scot;Password=AirWatch1;"; }
         }
 
         public SqlConnection MakeConnection(string connectionString)
@@ -32,7 +32,7 @@ namespace SqlServerAPI.DatabaseClasses
 
         public string ExecuteQuery(string query)
         {
-            var scot = String.Empty;
+            var contactTypeName = String.Empty;
             var connectionString = DatabaseConnection.ConnectionString;
             try
             {
@@ -46,7 +46,7 @@ namespace SqlServerAPI.DatabaseClasses
                             SqlDataReader reader = cmd.ExecuteReader();
                             while (reader.Read())
                             {
-                                reader.GetString(2);
+                                contactTypeName = reader.GetString(1);
                             }
                         }
                     }
@@ -54,13 +54,13 @@ namespace SqlServerAPI.DatabaseClasses
                     {
                         Console.WriteLine(ex.Message);
                     }
-                    return scot;
+                    return contactTypeName;
                 }
             } 
             catch (SqlException ex)
             {
                 Console.Write(ex.Message);
-                return scot;
+                return contactTypeName;
             }
         }
     }

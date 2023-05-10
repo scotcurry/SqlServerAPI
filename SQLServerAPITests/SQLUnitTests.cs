@@ -11,7 +11,7 @@ namespace SQLServerAPITests
         {
             var connectionString = DatabaseConnection.ConnectionString;
 
-            Assert.AreSame(connectionString, "Provider=MSOLEDBSQL19;Server=(local);Database=AdventureWorks;Use Encryption for Data=Optional;");
+            Assert.AreSame(connectionString, "Data Source=localhost;Initial Catalog=AdventureWorks2019;User ID=scot;Password=AirWatch1;");
         }
 
         [TestMethod]
@@ -28,9 +28,10 @@ namespace SQLServerAPITests
         {
            
             var queryString = "SELECT TOP (1000) [ContactTypeID], [Name], [ModifiedDate] FROM [AdventureWorks2019].[Person].[ContactType]";
+            queryString += "ORDER BY [AdventureWorks2019].[Person].[ContactType].Name";
             var databaseHandler = new DatabaseConnection();
-            string scot = databaseHandler.ExecuteQuery(queryString);
-            Assert.AreEqual(queryString, scot); 
+            string dbValue = databaseHandler.ExecuteQuery(queryString);
+            Assert.AreEqual("Sales Representative", dbValue); 
         }
     }
 }
