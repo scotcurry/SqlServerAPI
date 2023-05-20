@@ -33,5 +33,14 @@ namespace SQLServerAPITests
             string dbValue = databaseHandler.ExecuteQuery(queryString);
             Assert.AreEqual("Sales Representative", dbValue); 
         }
+
+        [TestMethod]
+        public void TestStoredProcedure() 
+        {
+            var spName = "Sales.spTaxRateByState";
+            var databaseHandler = new DatabaseConnection();
+            string returnValue = databaseHandler.ExecuteStoredProcedure(spName);
+            Assert.AreEqual("Washington", returnValue);
+        }
     }
 }

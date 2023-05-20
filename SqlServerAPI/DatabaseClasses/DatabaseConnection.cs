@@ -1,5 +1,10 @@
-﻿using System.Drawing;
+﻿using System.Data;
+using System.Diagnostics;
+using System.Drawing;
+using System.Text.Json;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using SqlServerAPI.Classes;
 
 namespace SqlServerAPI.DatabaseClasses
 {
@@ -54,6 +59,7 @@ namespace SqlServerAPI.DatabaseClasses
                     {
                         Console.WriteLine(ex.Message);
                     }
+                    connection.Close();
                     return contactTypeName;
                 }
             } 
@@ -61,6 +67,77 @@ namespace SqlServerAPI.DatabaseClasses
             {
                 Console.Write(ex.Message);
                 return contactTypeName;
+            }
+        }
+        // [Trace(OperationName = "database.persist", ResourceName = "SessionManager.SaveSession")]
+        public string ExecuteStoredProcedure(string spName)
+        {
+
+            var allStateRates = new List<StateSalesTax>();
+            var connectionString = DatabaseConnection.ConnectionString;
+
+            // Start a new span
+            //using (var scope = Tracer.Instance.StartActive("custom-operation"))
+            //{
+            //    // Do something
+            //}
+            try
+            {
+                using (var connection = new SqlConnection(connectionString))
+                {
+                    try
+                    {
+                        connection.Open();
+                        using (SqlCommand cmd = new SqlCommand(spName, connection))
+                        {
+                            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                            cmd.Parameters.AddWithValue("@CountryRegionCode", "US");
+                            SqlDataAdapter dataAdapter = new SqlDataAdapter()
+                            {
+                                SelectCommand = cmd,
+                            };
+                            DataSet dataSet = new DataSet();
+                            dataAdapter.Fill(dataSet);
+
+                            foreach (DataRow dataRow in dataSet.Tables[0].Rows)
+                            {
+                                var stateInfo = new StateSalesTax
+                                {
+                                    Name = (string)dataRow["Name"],
+                                    TaxRate = (decimal)dataRow["TaxRate"],
+                                    StateName = (string)dataRow["StateName"]
+                                };
+                                allStateRates.Add(stateInfo);
+                            }
+                        }
+                        var jsonString = JsonSerializer.Serialize(allStateRates);
+                        return jsonString;
+                    }
+                    catch (SqlException ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                        var stateInfo = new StateSalesTax
+                        {
+                            Name = "Error",
+                            TaxRate = Convert.ToDecimal("-1.0"),
+                            StateName = (string)ex.Message
+                        };
+                        allStateRates.Add(stateInfo);
+                        return JsonSerializer.Serialize(allStateRates);
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                Console.WriteLine(ex.Message);
+                var stateInfo = new StateSalesTax
+                {
+                    Name = "Error",
+                    TaxRate = Convert.ToDecimal("-1.0"),
+                    StateName = (string)ex.Message
+                };
+                allStateRates.Add(stateInfo);
+                return JsonSerializer.Serialize(allStateRates);
             }
         }
     }
