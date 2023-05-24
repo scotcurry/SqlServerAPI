@@ -19,7 +19,7 @@
                 <th>Tax Rate</th>
                 <th>State Name</th>
             </tr>
-            @foreach (TaxRateByState taxRate in Model.salesTaxModel)
+            @foreach (TaxRateByState taxRate in Model.salesTaxModel!)
             {
                 <tr>
                     <td>@taxRate.Name</td>

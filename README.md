@@ -1,4 +1,8 @@
-### Three tiered application ###
+## Three tiered application ##
+Application Flow
+
+- Start by going to <Server URL>/SalesTaxByState
+- Loads a Razor Page (See Razor Page Info)
 
 ## SQLServerAPI Solution - Database Tier ##
 

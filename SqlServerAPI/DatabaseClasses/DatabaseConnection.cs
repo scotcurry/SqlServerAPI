@@ -6,6 +6,9 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using SqlServerAPI.Classes;
 
+using Serilog;
+using Serilog.Formatting.Json;
+
 namespace SqlServerAPI.DatabaseClasses
 {
     public class DatabaseConnection
@@ -18,17 +21,36 @@ namespace SqlServerAPI.DatabaseClasses
             get { return "Data Source=localhost;Initial Catalog=AdventureWorks2019;User ID=scot;Password=AirWatch1;"; }
         }
 
+        public static string OtisConnectionString
+        {
+            get { return "Data Source=localhost;Initial Catalog=AdventureWorks2019;User ID=Otis;Password=AirWatch1;"; }
+        }
+
         public SqlConnection MakeConnection(string connectionString)
         {
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Information()
+                .WriteTo.Console()
+                .WriteTo.File(new JsonFormatter(renderMessage: true), "log.json")
+                .CreateLogger();
+
+            Log.Information("Attempting Database Connection");
+            Log.Information("Connection String: " + connectionString);
             using (var connection = new SqlConnection(connectionString))
             {
                 try
                 {
                     connection.Open();
+                    Log.Information("Success Opening Connection");
                 }
                 catch (SqlException exeception)
                 {
                     Console.WriteLine(exeception.Message);
+                    Log.Error(exeception.Message, exeception.StackTrace);
+                }
+                finally
+                {
+                    Log.CloseAndFlush();
                 }
 
                 return connection;
@@ -69,6 +91,7 @@ namespace SqlServerAPI.DatabaseClasses
                 return contactTypeName;
             }
         }
+
         // [Trace(OperationName = "database.persist", ResourceName = "SessionManager.SaveSession")]
         public string ExecuteStoredProcedure(string spName)
         {
@@ -81,6 +104,15 @@ namespace SqlServerAPI.DatabaseClasses
             //{
             //    // Do something
             //}
+
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Information()
+                .WriteTo.Console()
+                .WriteTo.File(".\\Logs\\SQLConnection.Log")
+                .CreateLogger();
+
+            Log.Information("Attempting Execute Stored Procedure");
+            Log.Information("Connection String: " + connectionString);
             try
             {
                 using (var connection = new SqlConnection(connectionString))
@@ -116,6 +148,7 @@ namespace SqlServerAPI.DatabaseClasses
                     catch (SqlException ex)
                     {
                         Console.WriteLine(ex.Message);
+                        Log.Error(ex.Message);
                         var stateInfo = new StateSalesTax
                         {
                             Name = "Error",
@@ -130,6 +163,7 @@ namespace SqlServerAPI.DatabaseClasses
             catch (SqlException ex)
             {
                 Console.WriteLine(ex.Message);
+                Log.Error(ex.Message);
                 var stateInfo = new StateSalesTax
                 {
                     Name = "Error",
@@ -138,6 +172,10 @@ namespace SqlServerAPI.DatabaseClasses
                 };
                 allStateRates.Add(stateInfo);
                 return JsonSerializer.Serialize(allStateRates);
+            }
+            finally
+            {
+                Log.CloseAndFlush();
             }
         }
     }
