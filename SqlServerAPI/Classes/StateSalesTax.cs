@@ -1,6 +1,6 @@
 ﻿namespace SqlServerAPI.Classes
 {
-    public class StateSalesTax
+    public class StateSalesTaxList
     {
         public string? Name { get; set; }
         public decimal TaxRate { get; set; } 

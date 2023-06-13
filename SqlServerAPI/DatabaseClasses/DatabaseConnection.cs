@@ -1,13 +1,12 @@
 ﻿using System.Data;
-using System.Diagnostics;
-using System.Drawing;
 using System.Text.Json;
 using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using SqlServerAPI.Classes;
 
 using Serilog;
 using Serilog.Formatting.Json;
+
+using Datadog.Trace.Annotations;
 
 namespace SqlServerAPI.DatabaseClasses
 {
@@ -57,10 +56,12 @@ namespace SqlServerAPI.DatabaseClasses
             }
         }
 
+        [Trace(OperationName = "execute.query", ResourceName = "SqlServerAPI.Database.Classes.DatabaseConnection.ExecuteQuery")]
         public string ExecuteQuery(string query)
         {
-            var contactTypeName = String.Empty;
-            var connectionString = DatabaseConnection.ConnectionString;
+            var connectionString = ConnectionString;
+            var productList = new List<ProductOrders>();
+            var jsonString = string.Empty;
             try
             {
                 using (var connection = new SqlConnection(connectionString))
@@ -68,42 +69,44 @@ namespace SqlServerAPI.DatabaseClasses
                     try
                     {
                         connection.Open();
-                        using (SqlCommand cmd = new SqlCommand(query, connection))
+                        using SqlCommand cmd = new SqlCommand(query, connection);
+                        SqlDataReader reader = cmd.ExecuteReader();
+                        while (reader.Read())
                         {
-                            SqlDataReader reader = cmd.ExecuteReader();
-                            while (reader.Read())
+                            var productOrder = new ProductOrders
                             {
-                                contactTypeName = reader.GetString(1);
-                            }
+                                orderQuantity = reader.GetInt16(0),
+                                orderName = reader.GetString(1),
+                                listPrice = reader.GetDecimal(2)
+                            };
+                            productList.Add(productOrder);
                         }
+                        var productOrderList = new ProductOrderList();
+                        productOrderList.productOrders = productList;
+                        jsonString = JsonSerializer.Serialize(productOrderList);
                     }
                     catch (SqlException ex)
                     {
                         Console.WriteLine(ex.Message);
+                        jsonString = ex.Message;
                     }
                     connection.Close();
-                    return contactTypeName;
+                    return jsonString;
                 }
             } 
             catch (SqlException ex)
             {
                 Console.Write(ex.Message);
-                return contactTypeName;
+                return "Scot";
             }
         }
 
-        // [Trace(OperationName = "database.persist", ResourceName = "SessionManager.SaveSession")]
+        [Trace(OperationName = "execute.stored_procedure", ResourceName = "SqlServerAPI.Database.Classes.DatabaseConnection.ExecuteStoredProcedure")]
         public string ExecuteStoredProcedure(string spName)
         {
 
-            var allStateRates = new List<StateSalesTax>();
-            var connectionString = DatabaseConnection.ConnectionString;
-
-            // Start a new span
-            //using (var scope = Tracer.Instance.StartActive("custom-operation"))
-            //{
-            //    // Do something
-            //}
+            var allStateRates = new List<StateSalesTaxList>();
+            var connectionString = ConnectionString;
 
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Information()
@@ -133,7 +136,7 @@ namespace SqlServerAPI.DatabaseClasses
 
                             foreach (DataRow dataRow in dataSet.Tables[0].Rows)
                             {
-                                var stateInfo = new StateSalesTax
+                                var stateInfo = new StateSalesTaxList
                                 {
                                     Name = (string)dataRow["Name"],
                                     TaxRate = (decimal)dataRow["TaxRate"],
@@ -142,14 +145,16 @@ namespace SqlServerAPI.DatabaseClasses
                                 allStateRates.Add(stateInfo);
                             }
                         }
-                        var jsonString = JsonSerializer.Serialize(allStateRates);
+                        var completeSalesTaxList = new CompleteSalesTaxList();
+                        completeSalesTaxList.stateSalesTaxList = allStateRates;
+                        var jsonString = JsonSerializer.Serialize(completeSalesTaxList);
                         return jsonString;
                     }
                     catch (SqlException ex)
                     {
                         Console.WriteLine(ex.Message);
                         Log.Error(ex.Message);
-                        var stateInfo = new StateSalesTax
+                        var stateInfo = new StateSalesTaxList
                         {
                             Name = "Error",
                             TaxRate = Convert.ToDecimal("-1.0"),
@@ -164,7 +169,7 @@ namespace SqlServerAPI.DatabaseClasses
             {
                 Console.WriteLine(ex.Message);
                 Log.Error(ex.Message);
-                var stateInfo = new StateSalesTax
+                var stateInfo = new StateSalesTaxList
                 {
                     Name = "Error",
                     TaxRate = Convert.ToDecimal("-1.0"),

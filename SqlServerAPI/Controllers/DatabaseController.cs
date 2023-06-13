@@ -19,30 +19,20 @@ namespace SqlServerAPI.Controllers
             Console.Write(returnValue);
             return returnValue;
         }
+    }
 
-        // GET api/<DatabaseScaffold>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+    [Route("api/[controller]")]
+    [ApiController]
+    public class QueryController: ControllerBase
+    {
+        [HttpGet]
+        public string Get()
         {
-            return "value";
-        }
-
-        // POST api/<DatabaseScaffold>
-        [HttpPost]
-        public void Post([FromBody] string value)
-        {
-        }
-
-        // PUT api/<DatabaseScaffold>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE api/<DatabaseScaffold>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
+            var salesOrderQuery = "SELECT OrderQty, Name, ListPrice FROM Sales.SalesOrderHeader JOIN Sales.SalesOrderDetail ON SalesOrderDetail.SalesOrderID = SalesOrderHeader.SalesOrderID JOIN Production.Product ON SalesOrderDetail.ProductID=Product.ProductID WHERE Sales.SalesOrderDetail.SalesOrderID=43659";
+            var databaseHandler = new DatabaseConnection();
+            string returnValue = databaseHandler.ExecuteQuery(salesOrderQuery);
+            return returnValue;
+            
         }
     }
 }
