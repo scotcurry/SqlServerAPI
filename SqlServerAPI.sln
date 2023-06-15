@@ -12,8 +12,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlServerWeb", "SqlServerWeb\SqlServerWeb.csproj", "{93E93B3F-CB01-445D-B4D9-E60914A5109F}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,10 +26,6 @@ Global
 		{C4385608-1CE5-40C2-8B72-4A992E81FBEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C4385608-1CE5-40C2-8B72-4A992E81FBEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C4385608-1CE5-40C2-8B72-4A992E81FBEC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{93E93B3F-CB01-445D-B4D9-E60914A5109F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{93E93B3F-CB01-445D-B4D9-E60914A5109F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{93E93B3F-CB01-445D-B4D9-E60914A5109F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{93E93B3F-CB01-445D-B4D9-E60914A5109F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -57,10 +57,10 @@ namespace SqlServerAPI.DatabaseClasses
             }
         }
 
-        [Trace(OperationName = "execute.query", ResourceName = "SqlServerAPI.Database.Classes.DatabaseConnection.ExecuteQuery")]
+        [Trace(OperationName = "execute-product-query", ResourceName = "SqlServerAPI.Database.Classes.DatabaseConnection.ExecuteQuery")]
         public string ExecuteQuery(string query)
         {
-            using (var scope = Tracer.Instance.StartActive("custom-operation"))
+            using (var scope = Tracer.Instance.StartActive("execute-product-query"))
             {
                 var connectionString = ConnectionString;
                 var productList = new List<ProductOrders>();
@@ -105,6 +105,7 @@ namespace SqlServerAPI.DatabaseClasses
             }
         }
 
+        [Trace(OperationName = "get-employee-records", ResourceName = "SqlServerAPI.Database.Classes.DatabaseConnection.GetEmployeeRecords")]
         public string GetEmployeeRecords()
         {
             var allEmployeeNames = new List<EmployeeNameRecord>();
@@ -131,8 +132,10 @@ namespace SqlServerAPI.DatabaseClasses
                         }
                     }
                 }
-                var employeeNameList = new EmployeeNameList();
-                employeeNameList.employeeNameRecords = allEmployeeNames;
+                var employeeNameList = new EmployeeNameList
+                {
+                    employeeNameRecords = allEmployeeNames
+                };
                 try
                 {
                     var jsonString = JsonSerializer.Serialize(employeeNameList);
@@ -153,6 +156,7 @@ namespace SqlServerAPI.DatabaseClasses
             }
         }
 
+        [Trace(OperationName = "get-employee-detail", ResourceName = "SqlServerAPI.Database.Classes.DatabaseConnection.GetEmployeeDetail")]
         public string GetEmployeeDetail(int employeeID)
         {
             var sqlQuery = "SELECT [Person].[BusinessEntityID], [Person].[FirstName], [Person].[LastName], [Person].[EmailAddress].[EmailAddress], [Person].[PersonPhone].[PhoneNumber] ";
@@ -194,7 +198,7 @@ namespace SqlServerAPI.DatabaseClasses
             }
         }
 
-        [Trace(OperationName = "execute.stored_procedure", ResourceName = "SqlServerAPI.Database.Classes.DatabaseConnection.ExecuteStoredProcedure")]
+        [Trace(OperationName = "execute-stored_procedure", ResourceName = "SqlServerAPI.Database.Classes.DatabaseConnection.ExecuteStoredProcedure")]
         public string ExecuteStoredProcedure(string spName)
         {
 
