@@ -35,4 +35,25 @@ namespace SqlServerAPI.Controllers
             
         }
     }
+
+    [Route("api/[controller]")]
+    [ApiController]
+    public class EmployeesController: ControllerBase 
+    {
+        [HttpGet]
+        public string Get()
+        {
+            var databaseHandler = new DatabaseConnection();
+            string returnValue = databaseHandler.GetEmployeeRecords();
+            return returnValue;
+        }
+
+        [HttpGet("{businessID}")]
+        public string Get(int businessID)
+        {
+            var databaseHandler = new DatabaseConnection();
+            string returnValue = databaseHandler.GetEmployeeDetail(businessID);
+            return returnValue;
+        }
+    }
 }

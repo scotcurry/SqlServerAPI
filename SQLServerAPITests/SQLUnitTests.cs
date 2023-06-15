@@ -1,5 +1,7 @@
-using Microsoft.Data.SqlClient;
+using System.Text.Json;
 using SqlServerAPI.DatabaseClasses;
+using SqlServerAPI.Classes;
+using System.Xml.Linq;
 
 namespace SQLServerAPITests
 {
@@ -16,22 +18,24 @@ namespace SQLServerAPITests
 
         [TestMethod]
         public void TestConnectToDatabase()
-        {
-            var connectionString = DatabaseConnection.ConnectionString;
+        {;
             var connection = new DatabaseConnection();
             var connectionType = typeof(DatabaseConnection);
             Assert.AreSame(connection.GetType(), connectionType);
         }
 
         [TestMethod]
-        public void TestSimpleQuery() 
+        public void TestSimpleQuery()
         {
            
-            var queryString = "SELECT TOP (1000) [ContactTypeID], [Name], [ModifiedDate] FROM [AdventureWorks2019].[Person].[ContactType]";
-            queryString += "ORDER BY [AdventureWorks2019].[Person].[ContactType].Name";
+            var queryString = "SELECT OrderQty, Name, ListPrice FROM Sales.SalesOrderHeader JOIN Sales.SalesOrderDetail ON SalesOrderDetail.SalesOrderID = SalesOrderHeader.SalesOrderID " +
+                "JOIN Production.Product ON SalesOrderDetail.ProductID = Product.ProductID WHERE Sales.SalesOrderDetail.SalesOrderID = 43659";
+
             var databaseHandler = new DatabaseConnection();
             string dbValue = databaseHandler.ExecuteQuery(queryString);
-            Assert.AreEqual("Sales Representative", dbValue); 
+            var deserializedJSON = JsonSerializer.Deserialize<ProductOrderList>(dbValue);
+            var totalEmployees = deserializedJSON?.productOrders?.Count;
+            Assert.AreNotEqual(0, totalEmployees); 
         }
 
         [TestMethod]
@@ -40,7 +44,28 @@ namespace SQLServerAPITests
             var spName = "Sales.spTaxRateByState";
             var databaseHandler = new DatabaseConnection();
             string returnValue = databaseHandler.ExecuteStoredProcedure(spName);
-            Assert.AreEqual("Washington", returnValue);
+            var deserializedJSON = JsonSerializer.Deserialize<CompleteSalesTaxList>(returnValue);
+            var totalStates = deserializedJSON?.stateSalesTaxList?.Count;
+            Assert.AreNotEqual(0, totalStates);
+        }
+
+        [TestMethod]
+        public void TextEmployeeQuery()
+        {
+            var databaseHandler = new DatabaseConnection();
+            string returnValue = databaseHandler.GetEmployeeRecords();
+            var deserializedJSON = JsonSerializer.Deserialize<EmployeeNameList>(returnValue);
+            var totalEmployees = deserializedJSON?.employeeNameRecords?.Count;
+            Assert.AreNotEqual(0, totalEmployees);
+        }
+
+        [TestMethod]
+        public void TestEmployeeDetail()
+        {
+            var databaseHandler = new DatabaseConnection();
+            string returnValue = databaseHandler.GetEmployeeDetail(10);
+            var deserializedJSON = JsonSerializer.Deserialize<EmployeeDetail>(returnValue);
+            Assert.AreEqual("Raheem", deserializedJSON?.LastName);
         }
     }
 }
