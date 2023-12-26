@@ -6,7 +6,27 @@ Application Flow
 
 ## SQLServerAPI Solution - Database Tier ##
 
-## Get Lets Encrypt Certificate ##
+If ever rebuilding SQL server you will need to run the following to build the stored procedure.
+```
+CREATE PROCEDURE [Sales].[spTaxRateByState]
+    @CountryRegionCode NVARCHAR(3)
+AS 
+    SET NOCOUNT ON ;
+ 
+    SELECT  [st].[SalesTaxRateID],
+            [st].[Name],
+            [st].[TaxRate],
+            [st].[TaxType],
+            [sp].[Name] AS StateName
+    FROM    [Sales].[SalesTaxRate] st
+            JOIN [Person].[StateProvince] sp ON [st].[StateProvinceID]
+             = [sp].[StateProvinceID]
+    WHERE   [sp].[CountryRegionCode] = @CountryRegionCode
+    ORDER BY [StateName]
+GO
+```
+
+## Get Lets Encrypt Certificate - Ubuntu Server ##
 Get cert:
 Make sure DynDNS points to IP address
 Make sure port forwarding points to Ubuntu instance and nginx is running
